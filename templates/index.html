@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>備品貸出管理</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        h1, h2 { 
+            color: #333; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #f2f2f2; 
+        }
+        img { 
+            width: 100px; 
+            height: auto; 
+        }
+        form {
+            margin-top: 20px;
+        }
+        label, input, select {
+            margin-bottom: 10px;
+            display: block;
+        }
+        .form-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .form-section {
+            width: 48%;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            function updateItemList(selectElement, itemSelect) {
+                var category = $(selectElement).val();
+                $.post("/get_items", {category: category}, function(data) {
+                    var items = data;
+                    $(itemSelect).empty();
+                    $(itemSelect).append($('<option></option>').attr('value', '').text('選択してください'));
+                    $.each(items, function(index, item) {
+                        $(itemSelect).append($('<option></option>').attr('value', item.id).text(item.name));
+                    });
+                });
+            }
+
+            $('#loan_category').change(function() {
+                updateItemList(this, '#loan_item_id');
+            });
+
+            $('#return_category').change(function() {
+                updateItemList(this, '#return_item_id');
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>備品貸出管理</h1>
+
+    <div class="form-container">
+        <div class="form-section">
+            <h2>備品貸出</h2>
+            <form action="{{ url_for('loan') }}" method="post">
+                <label for="loan_category">種別:</label>
+                <select name="category" id="loan_category" required>
+                    <option value="">選択してください</option>
+                    {% for category in items.keys() %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="loan_item_id">備品:</label>
+                <select name="item_id" id="loan_item_id" required>
+                    <option value="">種別を選択してください</option>
+                </select>
+
+                <label for="staff">担当者:</label>
+                <select name="staff" id="staff" required>
+                    {% for staff in staff_members %}
+                    <option value="{{ staff }}">{{ staff }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="quantity">個数:</label>
+                <input type="number" name="quantity" id="quantity" min="1" value="1" required>
+
+                <label for="grade">学年:</label>
+                <select name="grade" id="grade" required>
+                    <option value="1">1年</option>
+                    <option value="2">2年</option>
+                    <option value="3">3年</option>
+                </select>
+
+                <label for="class">クラス:</label>
+                <select name="class" id="class" required>
+                    {% for i in range(1, 8) %}
+                    <option value="{{ i }}">{{ i }}組</option>
+                    {% endfor %}
+                </select>
+
+                <label for="loan_date">貸出日時:</label>
+                <input type="datetime-local" name="loan_date" id="loan_date" required>
+
+                <label for="notes">備考:</label>
+                <textarea name="notes" id="notes" rows="4" cols="50"></textarea>
+
+                <button type="submit">貸出</button>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h2>備品返却</h2>
+            <form action="{{ url_for('return_item') }}" method="post">
+                <label for="return_category">種別:</label>
+                <select name="category" id="return_category" required>
+                    <option value="">選択してください</option>
+                    {% for category in items.keys() %}
+                    <option value="{{ category }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="return_item_id">備品:</label>
+                <select name="item_id" id="return_item_id" required>
+                    <option value="">種別を選択してください</option>
+                </select>
+
+                <label for="return_staff">担当者:</label>
+                <select name="staff" id="return_staff" required>
+                    {% for staff in staff_members %}
+                    <option value="{{ staff }}">{{ staff }}</option>
+                    {% endfor %}
+                </select>
+
+                <label for="return_quantity">個数:</label>
+                <input type="number" name="quantity" id="return_quantity" min="1" value="1" required>
+
+                <label for="return_grade">学年:</label>
+                <select name="grade" id="return_grade" required>
+                    <option value="1">1年</option>
+                    <option value="2">2年</option>
+                    <option value="3">3年</option>
+                </select>
+
+                <label for="return_class">クラス:</label>
+                <select name="class" id="return_class" required>
+                    {% for i in range(1, 8) %}
+                    <option value="{{ i }}">{{ i }}組</option>
+                    {% endfor %}
+                </select>
+
+                <label for="return_date">返却日時:</label>
+                <input type="datetime-local" name="return_date" id="return_date" required>
+
+                <label for="return_notes">備考:</label>
+                <textarea name="notes" id="return_notes" rows="4" cols="50"></textarea>
+
+                <button type="submit">返却</button>
+            </form>
+        </div>
+    </div>
+
+    <h2>備品管理表</h2>
+    <table>
+        <tr>
+            <th>種別</th>
+            <th>画像</th>
+            <th>備品名</th>
+            <th>状態</th>
+            <th>在庫数</th>
+        </tr>
+        {% for category, category_items in items.items() %}
+            {% for item in category_items %}
+            <tr>
+                <td>{{ category }}</td>
+                <td><img src="{{ url_for('static', filename='images/' + item.image) }}" alt="{{ item.name }}"></td>
+                <td>{{ item.name }}</td>
+                <td>{{ '貸出中' if item.status == 'lent' else '利用可能' }}</td>
+                <td>{{ item.quantity }}</td>
+            </tr>
+            {% endfor %}
+        {% endfor %}
+    </table>
+
+    <a href="{{ url_for('view_logs') }}">貸出・返却記録を表示</a>
+</body>
+</html>
