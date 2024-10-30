@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>貸出・返却記録ログ</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        h1 { 
+            color: #333; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #f2f2f2; 
+        }
+    </style>
+</head>
+<body>
+    <h1>貸出・返却記録ログ</h1>
+    <form action="{{ url_for('view_logs') }}" method="get">
+        <label for="sort_by">並び替え:</label>
+        <select name="sort_by" id="sort_by">
+            <option value="time">時間順</option>
+            <option value="class">クラス別</option>
+            <option value="item">備品別</option>
+        </select>
+        <button type="submit">並び替え</button>
+    </form>
+    <table>
+        <tr>
+            <th>種類</th>
+            <th>備品名</th>
+            <th>個数</th>
+            <th>担当者</th>
+            <th>学年クラス</th>
+            <th>日時</th>
+            <th>備考</th>
+        </tr>
+        {% for log in logs %}
+        <tr>
+            <td>{{ '貸出' if log.type == 'loan' else '返却' }}</td>
+            <td>{{ log.item_name }}</td>
+            <td>{{ log.quantity }}</td>
+            <td>{{ log.staff }}</td>
+            <td>{{ log.grade }}年{{ log.class }}組</td>
+            <td>{{ log.loan_date if log.type == 'loan' else log.return_date }}</td>
+            <td>{{ log.notes }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="{{ url_for('index') }}">戻る</a>
+</body>
+</html>
